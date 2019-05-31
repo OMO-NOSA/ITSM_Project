@@ -2,6 +2,7 @@ import graphene
 from graphene_django import DjangoObjectType
 from . models import Track, Like
 from users.schema import UserType
+from graphql import GraphQLError
 
 class TrackType(DjangoObjectType):
     class Meta:
@@ -35,7 +36,7 @@ class CreateTrack(graphene.Mutation):
         user = info.context.user
 
         if user.is_anonymous:
-            raise Exception('Log in to add a track')
+            raise GraphQlError('Log in to add a track')
 
         track = Track(title=title, description=description, url=url, posted_by=user)
         track.save()
@@ -56,7 +57,7 @@ class UpdateTrack(graphene.Mutation):
         
 
         if track.posted_by != user:
-            raise Exception('Not permitted to Update Tracks')
+            raise GraphQlError('Not permitted to Update Tracks')
         
         track.title = title
         track.description = description
@@ -76,7 +77,7 @@ class DeleteTrack(graphene.Mutation):
         track = Track.objects.get(id=track_id)
 
         if track.posted_by != user:
-            raise Exception('Not permitted to delete this track.')
+            raise GraphQlError('Not permitted to delete this track.')
 
         track.delete()
 
@@ -93,11 +94,11 @@ class CreateLike(graphene.Mutation):
         user = info.context.user
 
         if user.is_anonymous:
-            raise Exception ('Login to like tracks.')
+            raise GraphQlError ('Login to like tracks.')
         track = Track.objects.get(id=track_id)
 
         if not track:
-            raise Exception('Cannot find track with given track id.')
+            raise GraphQlError('Cannot find track with given track id.')
         Like.objects.create(
             user=user
             track = track
